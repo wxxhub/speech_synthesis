@@ -5,8 +5,8 @@ from time import ctime, sleep
 
 import numpy as np
 from ChineseTone import *
-from offline_speech.NumToChinese import numToChinese
-from offline_speech.ToAudio import ToAudio
+from speech_synthesis.NumToChinese import numToChinese
+from speech_synthesis.ToAudio import ToAudio
 
 
 class SpeechSynthsis:
@@ -34,8 +34,8 @@ class SpeechSynthsis:
         pass
     
     @classmethod
-    def setFile(self, cache_file):
-        self.to_audio.setFile(cache_file)
+    def setFile(self, cache_file, voice_file):
+        self.to_audio.setFile(cache_file, voice_file)
         pass
 
     @classmethod

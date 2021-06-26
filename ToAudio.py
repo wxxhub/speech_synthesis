@@ -28,6 +28,9 @@ class ToAudio:
     max_frequency = 22050
     min_frequency = 10000
 
+    __voice_cache = dict()
+    __params = []
+
     @classmethod
     def __init__(self, goal_frequency = 16000, ):
         if goal_frequency < self.min_frequency:
@@ -44,6 +47,29 @@ class ToAudio:
 
         self.play_thread_ = threading.Thread(target=self.__playThread)
         self.play_thread_.start()
+        pass
+    
+    @classmethod
+    def scanVoiceFile(self):
+        wavs = os.listdir(self.voice_file)
+
+        if 0 == len(wavs):
+            return
+            
+        self.__voice_cache.clear()
+
+        for wav in wavs:
+            print(wav)
+            wav_file = os.path.join(self.voice_file, wav)
+            read_wave = wave.open(wav_file, 'r')
+            params = read_wave.getparams()
+            data = read_wave.readframes(read_wave.getnframes())
+
+            self.__voice_cache[wav] = data
+
+            self.__params = read_wave.getparams()
+
+        
         pass
 
     @classmethod
@@ -63,8 +89,11 @@ class ToAudio:
         pass
 
     @classmethod
-    def setCacheFile(self, cache_file):
+    def setFile(self, cache_file, voice_file):
         self.cache_file_ = cache_file
+        self.voice_file = voice_file
+
+        self.scanVoiceFile()
         pass
 
     @classmethod
@@ -115,37 +144,36 @@ class ToAudio:
     @classmethod
     def __synthesis(self, sentence):
         datas = []
-        success = False
-        for word in sentence:
-            wav_file = self.voice_file_+'/'+word+'.wav'
-            # print (wav_file)
-            if not os.path.exists(wav_file):
-                print (wav_file + " not exists, please add")
-                continue
+        # success = False
+        # for word in sentence:
+        #     wav_file = self.voice_file_+'/'+word+'.wav'
+        #     # print (wav_file)
+        #     if not os.path.exists(wav_file):
+        #         print (wav_file + " not exists, please add")
+        #         continue
 
-            read_wave = wave.open(wav_file, 'r')
+        #     read_wave = wave.open(wav_file, 'r')
 
-            if not success:
-                params = read_wave.getparams()
+        #     if not success:
+        #         params = read_wave.getparams()
 
-            data = read_wave.readframes(read_wave.getnframes())
+        #     data = read_wave.readframes(read_wave.getnframes())
 
-            datas.append(data)
-            read_wave.close()
-            success = True
-            
-
-        if success:
-            file_name = self.cache_file_+'/voices'+str(self.cache_file_num)+'.wav'
-            self.cache_file_num = self.cache_file_num + 1
-            out_put_wave = wave.open(file_name,  'w')
-            out_put_wave.setparams(params)
-            for data in datas:
-                out_put_wave.writeframes(data)
-            out_put_wave.close()
-            return True, file_name
+        #     datas.append(data)
+        #     read_wave.close()
+        #     success = True
         
-        return False, ''
+
+        file_name = self.cache_file_+'/voices'+str(self.cache_file_num)+'.wav'
+        self.cache_file_num = self.cache_file_num + 1
+        out_put_wave = wave.open(file_name,  'w')
+        out_put_wave.setparams(self.__params)
+        for data in sentence:
+            print (self.__voice_cache[data+'.wav'])
+            out_put_wave.writeframes(self.__voice_cache[data+'.wav'])
+        out_put_wave.close()
+        return True, file_name
+  
             
 
     @classmethod
