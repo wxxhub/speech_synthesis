@@ -1,52 +1,28 @@
 #coding=utf-8
 
-import pygame.mixer
-import time
 import wave
-from time import sleep
-import threading
 import os
-
-try:
-    from queue import Queue
-except:
-    from Queue import Queue
-
-lock = threading.Lock()
-thread_num_lock = threading.Lock()
+from pydub import AudioSegment
+import numpy as np
+import struct
 
 class ToAudio:
     play_num_ = 0
     cache_file_num = 0
     cache_file_ = "cache"
     voice_file_ = "wav"
-    sentence_queue_ = Queue()
-    play_thread_ = None
-    enable_ = False
-    playing_ = False
-    resetting = False
-    max_frequency = 22050
-    min_frequency = 10000
 
     __voice_cache = dict()
     __params = []
 
     @classmethod
-    def __init__(self, goal_frequency = 16000, ):
-        if goal_frequency < self.min_frequency:
-            goal_frequency = self.min_frequency
-        elif goal_frequency > self.max_frequency:
-            goal_frequency = self.max_frequency
-            
-        pygame.mixer.init(frequency=goal_frequency, channels=1) 
-
+    def __init__(self, goal_frequency = 16000):
         # create cache file
         self.enable_ = True
         if not os.path.exists(self.cache_file_):
             os.mkdir(self.cache_file_)
 
-        self.play_thread_ = threading.Thread(target=self.__playThread)
-        self.play_thread_.start()
+        self.__patition_audio = struct.pack('<h', int(0)) * 5000
         pass
     
     @classmethod
@@ -59,33 +35,28 @@ class ToAudio:
         self.__voice_cache.clear()
 
         for wav in wavs:
-            print(wav)
             wav_file = os.path.join(self.voice_file, wav)
             read_wave = wave.open(wav_file, 'r')
             params = read_wave.getparams()
             data = read_wave.readframes(read_wave.getnframes())
 
-            self.__voice_cache[wav] = data
-
             self.__params = read_wave.getparams()
+
+            # 去掉文件后缀
+            wav = wav.split('.')[0]
+            self.__voice_cache[wav] = data
 
         
         pass
 
     @classmethod
     def __del__(self):
-        self.play_thread_.join()
         pass
     
     @classmethod
     def reset(self):
-        self.resetting = True
         self.sentence_queue_.queue.clear()
-        self.play_num_ = 0
         self.cache_file_num = 0
-        while pygame.mixer.music.get_busy():
-            pass
-        self.resetting = False
         pass
 
     @classmethod
@@ -101,94 +72,31 @@ class ToAudio:
         print ("cache_file: "+self.cache_file_)
         print ("voice_file: "+self.voice_file_)
         pass
-    
+
     @classmethod
-    def append(self, sentence):
-        self.sentence_queue_.put(sentence)
-        # print (sentence)
+    def synthesis(self, content, cache_name = None):
+        return self.__synthesis(content, cache_name)
         pass
 
-    @classmethod
-    def dataEmpty(self):
-        if self.play_num_ > 0:
-            return False
-
-        return self.sentence_queue_.empty()
 
     @classmethod
-    def playing(self):
-        return self.playing_
+    def __synthesis(self, content, cache_name = None):
+        file_name = ''
+        if cache_name:
+            file_name = self.cache_file_+'/voices'+str(cache_name)+'.wav'
+        else:
+            self.cache_file_num += 1
+            file_name = self.cache_file_+'/voices'+str(self.cache_file_num)+'.wav'
 
-    @classmethod
-    def close(self):
-        self.enable_ = False
-    
-    @classmethod
-    def __playThread(self):
-        while self.enable_:
-            # resetting and not enable break
-            while not self.resetting and self.enable_:
-                if not self.sentence_queue_.empty():
-                    sentence = self.sentence_queue_.get()
-                    result, file_name = self.__synthesis(sentence)
-                    if result:
-                        # 如果等待播放的数量大于一,等待
-                        while self.play_num_ > 1 and not self.resetting and self.enable_:
-                            sleep(0.1)
-                        
-                        self.__playSpeech(file_name)
-                sleep(0.1)
-            sleep(0.1)
-        pass
-
-    @classmethod
-    def __synthesis(self, sentence):
-        datas = []
-        # success = False
-        # for word in sentence:
-        #     wav_file = self.voice_file_+'/'+word+'.wav'
-        #     # print (wav_file)
-        #     if not os.path.exists(wav_file):
-        #         print (wav_file + " not exists, please add")
-        #         continue
-
-        #     read_wave = wave.open(wav_file, 'r')
-
-        #     if not success:
-        #         params = read_wave.getparams()
-
-        #     data = read_wave.readframes(read_wave.getnframes())
-
-        #     datas.append(data)
-        #     read_wave.close()
-        #     success = True
-        
-
-        file_name = self.cache_file_+'/voices'+str(self.cache_file_num)+'.wav'
-        self.cache_file_num = self.cache_file_num + 1
         out_put_wave = wave.open(file_name,  'w')
         out_put_wave.setparams(self.__params)
-        for data in sentence:
-            print (self.__voice_cache[data+'.wav'])
-            out_put_wave.writeframes(self.__voice_cache[data+'.wav'])
+        
+        for data in content:
+            if not data:
+                out_put_wave.writeframes(self.__patition_audio)
+            else:
+                out_put_wave.writeframes(self.__voice_cache[data])
+            
         out_put_wave.close()
         return True, file_name
-  
-            
-
-    @classmethod
-    def __playSpeech(self, file_name):
-        self.playing_ = True
-        self.play_num_ = self.play_num_ + 1
-        track = pygame.mixer.music.load(file_name)
-        pygame.mixer.music.play()
-
-        while not self.resetting and pygame.mixer.music.get_busy():
-            sleep(0.1)
-
-        pygame.mixer.music.stop()
-        if self.play_num_ != 0:
-            self.play_num_ = self.play_num_ - 1
-
-        self.playing_ = False
-        pass
+        

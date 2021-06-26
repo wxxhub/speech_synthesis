@@ -16,22 +16,24 @@ class SpeechSynthsis:
         self.to_audio = ToAudio(goal_frequency)
 
     @classmethod
-    def append(self, sentence):
-        split_sentences = re.split(u"[%s]+"%self.punctuation, sentence)
-  
-        for split_sentence in split_sentences:
-            split_sentence = numToChinese(str(split_sentence))
-            pinyins = PinyinHelper.convertToPinyinFromSentence(split_sentence, pinyinFormat=PinyinFormat.WITH_TONE_NUMBER)
+    def synthesis(self, content):
+        split_contents = re.split(u"[%s]+"%self.punctuation, content)
 
-            play_sentence = []
-            
+        play_content = []
+        for split_content in split_contents:
+            split_content = numToChinese(str(split_content))
+            pinyins = PinyinHelper.convertToPinyinFromSentence(split_content, pinyinFormat=PinyinFormat.WITH_TONE_NUMBER)
+
             for pin_yin in pinyins:
                 tone = re.sub(u"([^\u0030-\u0039])", "", pin_yin)
                 pronounce = re.sub(u"([^\u0061-\u007a])", "", pin_yin)
-                play_sentence.append(pronounce + tone)
+                play_content.append(pronounce + tone)
             
-            self.to_audio.append(play_sentence)
-        pass
+            
+            play_content.append('')
+
+        ok, result = self.to_audio.synthesis(play_content, 123)
+        return ok ,result
     
     @classmethod
     def setFile(self, cache_file, voice_file):
@@ -53,4 +55,4 @@ class SpeechSynthsis:
 
     @classmethod
     def close(self):
-        self.to_audio.close()
+        pass
