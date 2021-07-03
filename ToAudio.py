@@ -37,7 +37,6 @@ class ToAudio:
         for wav in wavs:
             wav_file = os.path.join(self.voice_file, wav)
             read_wave = wave.open(wav_file, 'r')
-            params = read_wave.getparams()
             data = read_wave.readframes(read_wave.getnframes())
 
             self.__params = read_wave.getparams()
@@ -55,7 +54,6 @@ class ToAudio:
     
     @classmethod
     def reset(self):
-        self.sentence_queue_.queue.clear()
         self.cache_file_num = 0
         pass
 

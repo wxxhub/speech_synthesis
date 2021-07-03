@@ -1,10 +1,9 @@
 #coding=utf-8
 
 import re
-from time import ctime, sleep
 
-import numpy as np
 from ChineseTone import *
+
 from speech_synthesis.NumToChinese import numToChinese
 from speech_synthesis.ToAudio import ToAudio
 
@@ -29,30 +28,17 @@ class SpeechSynthsis:
                 pronounce = re.sub(u"([^\u0061-\u007a])", "", pin_yin)
                 play_content.append(pronounce + tone)
             
-            
             play_content.append('')
 
         ok, result = self.to_audio.synthesis(play_content, 123)
         return ok ,result
     
     @classmethod
-    def setFile(self, cache_file, voice_file):
+    def setFile(self, voice_file, cache_file):
         self.to_audio.setFile(cache_file, voice_file)
         pass
-
-    @classmethod
-    def dataEmpty(self):
-        return self.to_audio.dataEmpty()
     
     @classmethod
     def reset(self):
         self.to_audio.reset()
-        pass
-    
-    @classmethod
-    def playing(self):
-        return self.to_audio.playing_
-
-    @classmethod
-    def close(self):
         pass
