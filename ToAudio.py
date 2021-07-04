@@ -2,8 +2,6 @@
 
 import wave
 import os
-from pydub import AudioSegment
-import numpy as np
 import struct
 
 class ToAudio:

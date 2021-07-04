@@ -1,4 +1,2 @@
 ChineseTone
-numpy
 wave
-pydub
