@@ -15,7 +15,7 @@ class SpeechSynthsis:
         self.to_audio = ToAudio(goal_frequency)
 
     @classmethod
-    def synthesis(self, content):
+    def synthesis(self, content, cache_name = None):
         split_contents = re.split(u"[%s]+"%self.punctuation, content)
 
         play_content = []
@@ -30,7 +30,7 @@ class SpeechSynthsis:
             
             play_content.append('')
 
-        ok, result = self.to_audio.synthesis(play_content, 123)
+        ok, result = self.to_audio.synthesis(play_content, cache_name)
         return ok ,result
     
     @classmethod
@@ -42,3 +42,7 @@ class SpeechSynthsis:
     def reset(self):
         self.to_audio.reset()
         pass
+
+    @classmethod
+    def getCacheFile(self):
+        return self.to_audio.getCacheFile()

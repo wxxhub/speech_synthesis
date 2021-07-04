@@ -72,7 +72,12 @@ class ToAudio:
         pass
 
     @classmethod
+    def getCacheFile(self):
+        return self.cache_file_
+
+    @classmethod
     def synthesis(self, content, cache_name = None):
+        self.printFile()
         return self.__synthesis(content, cache_name)
         pass
 
@@ -81,12 +86,14 @@ class ToAudio:
     def __synthesis(self, content, cache_name = None):
         file_name = ''
         if cache_name:
-            file_name = self.cache_file_+'/voices'+str(cache_name)+'.wav'
+            file_name = str(cache_name)+'.wav'
         else:
             self.cache_file_num += 1
-            file_name = self.cache_file_+'/voices'+str(self.cache_file_num)+'.wav'
+            file_name = str(self.cache_file_num)+'.wav'
 
-        out_put_wave = wave.open(file_name,  'w')
+        full_path = self.cache_file_+'/'+ file_name
+
+        out_put_wave = wave.open(full_path,  'w')
         out_put_wave.setparams(self.__params)
         
         for data in content:

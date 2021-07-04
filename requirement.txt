@@ -1,0 +1,4 @@
+ChineseTone
+numpy
+wave
+pydub
