@@ -12,6 +12,7 @@ class ToAudio:
 
     __voice_cache = dict()
     __params = []
+    __goal_frequency = 16000
 
     @classmethod
     def __init__(self, goal_frequency = 16000):
@@ -21,6 +22,7 @@ class ToAudio:
             os.mkdir(self.cache_file_)
 
         self.__patition_audio = struct.pack('<h', int(0)) * 5000
+        self.__goal_frequency = goal_frequency
         pass
     
     @classmethod
@@ -93,6 +95,7 @@ class ToAudio:
 
         out_put_wave = wave.open(full_path,  'w')
         out_put_wave.setparams(self.__params)
+        out_put_wave.setframerate(self.__goal_frequency)
         
         for data in content:
             if not data:
